@@ -51,106 +51,24 @@ const run = (cmd: string) => execSync(cmd, { stdio: 'inherit' });
   // -----------------------------
   switch (template) {
     case 'vite-react':
+      configureVSCode();
+      configureGitIgnore();
       generateViteReactProject();
       break;
     case 'npx prompt':
       generateNpxPromptProject(projectName);
+      installEsLintAndPrettierAndVitest();
+      configureTsConfigJSON();
+      configureVSCode();
+      configureGitIgnore();
       break;
     default:
       generateNodeTypescriptProject(projectName);
+      installEsLintAndPrettierAndVitest();
+      configureTsConfigJSON();
+      configureVSCode();
+      configureGitIgnore();
   }
-
-  // -----------------------------
-  // Install dev dependencies
-  // -----------------------------
-  console.log('\n📘 Installing dev dependencies...');
-  run(
-    'pnpm add -D typescript @types/node eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier eslint-config-prettier eslint-plugin-prettier vitest @vitest/coverage-v8',
-  );
-
-  // -----------------------------
-  // TypeScript config
-  // -----------------------------
-  console.log('\n⚙️ Initializing TypeScript...');
-  const tsconfig = {
-    compilerOptions: {
-      target: 'ES2020',
-      module: 'ESNext',
-      rootDir: 'src',
-      outDir: 'dist',
-      strict: true,
-      esModuleInterop: true,
-      skipLibCheck: true,
-      forceConsistentCasingInFileNames: true,
-      declaration: true,
-      sourceMap: true,
-    },
-    include: ['src'],
-  };
-  fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2));
-
-  // -----------------------------
-  // ESLint + Prettier
-  // -----------------------------
-  console.log('\n🧹 Setting up ESLint + Prettier...');
-  fs.writeFileSync(
-    '.eslintrc.json',
-    JSON.stringify(
-      {
-        parser: '@typescript-eslint/parser',
-        parserOptions: { ecmaVersion: 2020, sourceType: 'module' },
-        plugins: ['@typescript-eslint'],
-        extends: [
-          'eslint:recommended',
-          'plugin:@typescript-eslint/recommended',
-          'plugin:prettier/recommended',
-        ],
-        rules: {
-          '@typescript-eslint/no-unused-vars': ['warn'],
-          'no-console': 'off',
-        },
-      },
-      null,
-      2,
-    ),
-  );
-
-  fs.writeFileSync(
-    '.prettierrc',
-    JSON.stringify(
-      {
-        semi: true,
-        singleQuote: true,
-        trailingComma: 'all',
-        printWidth: 80,
-      },
-      null,
-      2,
-    ),
-  );
-
-  // -----------------------------
-  // VSCode config
-  // -----------------------------
-  console.log('\n💻 Configuring VSCode...');
-  fs.mkdirSync('.vscode', { recursive: true });
-  fs.writeFileSync(
-    '.vscode/settings.json',
-    JSON.stringify(
-      {
-        'editor.formatOnSave': true,
-        'editor.defaultFormatter': 'esbenp.prettier-vscode',
-        'eslint.validate': ['typescript', 'typescriptreact'],
-      },
-      null,
-      2,
-    ),
-  );
-
-  // -----------------------------
-  // .gitignore
-  // -----------------------------
-  fs.writeFileSync('.gitignore', 'node_modules\n.dist\n.env\n');
 
   console.log('\n✅ Project setup complete!');
   console.log(`\n👉 Next steps:
@@ -163,21 +81,6 @@ const run = (cmd: string) => execSync(cmd, { stdio: 'inherit' });
 
 function generateViteReactProject() {
   run(`pnpm create vite@latest . --template react-ts --yes`);
-  // -----------------------------
-  // Update package.json scripts
-  // -----------------------------
-  console.log('\n🧰 Updating package.json scripts...');
-  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  pkg.scripts = Object.assign(pkg.scripts || {}, {
-    build: 'tsc',
-    start: 'vite',
-    dev: 'vite',
-    lint: 'eslint . --ext .ts,.tsx',
-    format: 'prettier --write .',
-    test: 'vitest run',
-    'test:watch': 'vitest',
-  });
-  fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
 }
 
 function generateNpxPromptProject(projectName: string) {
@@ -407,4 +310,104 @@ pnpm run dev
 This project is licensed under the [MIT License](LICENSE).
 `,
   );
+}
+
+function installEsLintAndPrettierAndVitest() {
+  // -----------------------------
+  // Install dev dependencies
+  // -----------------------------
+  console.log('\n📘 Installing dev dependencies...');
+  run(
+    'pnpm add -D typescript @types/node eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier eslint-config-prettier eslint-plugin-prettier vitest @vitest/coverage-v8',
+  );
+
+  // -----------------------------
+  // ESLint + Prettier
+  // -----------------------------
+  console.log('\n🧹 Setting up ESLint + Prettier...');
+  fs.writeFileSync(
+    '.eslintrc.json',
+    JSON.stringify(
+      {
+        parser: '@typescript-eslint/parser',
+        parserOptions: { ecmaVersion: 2020, sourceType: 'module' },
+        plugins: ['@typescript-eslint'],
+        extends: [
+          'eslint:recommended',
+          'plugin:@typescript-eslint/recommended',
+          'plugin:prettier/recommended',
+        ],
+        rules: {
+          '@typescript-eslint/no-unused-vars': ['warn'],
+          'no-console': 'off',
+        },
+      },
+      null,
+      2,
+    ),
+  );
+
+  fs.writeFileSync(
+    '.prettierrc',
+    JSON.stringify(
+      {
+        semi: true,
+        singleQuote: true,
+        trailingComma: 'all',
+        printWidth: 80,
+      },
+      null,
+      2,
+    ),
+  );
+}
+
+function configureTsConfigJSON() {
+  // -----------------------------
+  // TypeScript config
+  // -----------------------------
+  console.log('\n⚙️ Initializing TypeScript...');
+  const tsconfig = {
+    compilerOptions: {
+      target: 'ES2020',
+      module: 'ESNext',
+      rootDir: 'src',
+      outDir: 'dist',
+      strict: true,
+      esModuleInterop: true,
+      skipLibCheck: true,
+      forceConsistentCasingInFileNames: true,
+      declaration: true,
+      sourceMap: true,
+    },
+    include: ['src'],
+  };
+  fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2));
+}
+
+function configureVSCode() {
+  // -----------------------------
+  // VSCode config
+  // -----------------------------
+  console.log('\n💻 Configuring VSCode...');
+  fs.mkdirSync('.vscode', { recursive: true });
+  fs.writeFileSync(
+    '.vscode/settings.json',
+    JSON.stringify(
+      {
+        'editor.formatOnSave': true,
+        'editor.defaultFormatter': 'esbenp.prettier-vscode',
+        'eslint.validate': ['typescript', 'typescriptreact'],
+      },
+      null,
+      2,
+    ),
+  );
+}
+
+function configureGitIgnore() {
+  // -----------------------------
+  // .gitignore
+  // -----------------------------
+  fs.writeFileSync('.gitignore', 'node_modules\n.dist\n.env\n');
 }
