@@ -306,13 +306,15 @@ function generateNodeTypescriptProject(projectName: string) {
   pkg.scripts = Object.assign(pkg.scripts || {}, {
     build: 'tsc',
     start: 'node dist/index.js',
-    dev: 'tsc --watch',
+    dev: 'nodemon --watch src --ext ts --exec "node --loader ts-node/esm src/index.ts"',
     lint: 'eslint . --ext .ts,.tsx',
     format: 'prettier --write .',
     test: 'vitest run',
     'test:watch': 'vitest',
   });
   fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+
+  run('pnpm add -D ts-node nodemon');
 
   // src folder
   fs.mkdirSync('src');
